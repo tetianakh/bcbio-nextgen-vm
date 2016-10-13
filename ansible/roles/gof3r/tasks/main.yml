@@ -1,24 +1,31 @@
 ---
-- name: Install goofys and mount S3 bucket
+- name: Install gof3r
   hosts: all
   vars:
-    goofys_file: /usr/local/bin/goofys
-    goofys_url: https://github.com/kahing/goofys/releases/download/v0.0.8/goofys
-    S3_endpoint: s3.eu-central-1.amazonaws.com
-    S3_bucket: testbcbio
-    S3_mount_point: /mnt/S3
+    gof3r_ver: '0.4.9'
+    gof3r_tmpdir: /tmp/gof3r-install
+    gof3r_install_dir: /usr/local/bin
   tasks:
-    - name: Download goofys 
+    - name: Prep gof3r release directory
+      file: path='{{ gof3r_tmpdir }}' state=directory
+
+    - name: Prep local bin directory
+      file: path='{{ gof3r_install_dir }}' state=directory
+      sudo: true
+
+    - name: Get latest gof3r release
       get_url:
-        url: "{{ goofys_url }}"
-        dest: "{{ goofys_file }}"
-        force: yes
-        mode: 0755
-      sudo: True
+        url: 'https://github.com/rlmcpherson/s3gof3r/releases/download/v{{gof3r_ver}}/gof3r_{{gof3r_ver}}_linux_amd64.tar.gz'
+        dest: '{{gof3r_tmpdir}}/gof3r_{{gof3r_ver}}_linux_amd64.tar.gz'
 
-    - name: Mount S3 bucket  
-      shell: goofys --endpoint "{{ S3_endpoint }}" "{{ S3_bucket }}" "{{ S3_mount_point }}"
-      sudo: True
+    - name: Unpack gof3r release
+      command: 'tar -xzvpf gof3r_{{gof3r_ver}}_linux_amd64.tar.gz'
+      args:
+        chdir: '{{gof3r_tmpdir}}'
+        creates: '{{gof3r_tmpdir}}/gof3r_{{gof3r_ver}}_linux_amd64/gof3r'
 
-    - name: Check if the bucket is mounted
-      command: "grep -s {{ S3_bucket }} /proc/mounts"
+    - name: Install gof3r binary
+      command: 'cp {{gof3r_tmpdir}}/gof3r_{{gof3r_ver}}_linux_amd64/gof3r {{ gof3r_install_dir }}'
+      sudo: true
+      args:
+        creates: '{{ gof3r_install_dir }}/gof3r'

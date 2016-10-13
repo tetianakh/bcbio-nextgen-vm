@@ -140,7 +140,8 @@ def run_ansible_pb(inventory_path, playbook_path, args, calc_extra_vars=None,
         callbacks=callbacks,
         runner_callbacks=runner_cb,
         forks=10,
-        stats=stats)
+        stats=stats
+    )
     status = pb.run()
 
     if ansible_cfg:

@@ -46,8 +46,8 @@ def bootstrap(args):
     """
     _bootstrap_baseline(args, common.ANSIBLE_BASE)
     # _bootstrap_nfs(args, common.ANSIBLE_BASE)
+    _bootstrap_S3(args)
     _bootstrap_bcbio(args, common.ANSIBLE_BASE)
-    _bootstrap_S3(args, common.ANSIBLE_BASE)
 
 
 def _bootstrap_baseline(args, ansible_base):
@@ -98,7 +98,8 @@ def _bootstrap_bcbio(args, ansible_base):
         inventory_path, playbook_path, args, _extra_vars)
 
 
-def _bootstrap_S3(args, ansible_base):
+def _bootstrap_S3(args):
+    ansible_base = './ansible'
     cluster = common.ecluster_config(args.econfig).load_cluster(args.cluster)
     inventory_path = os.path.join(
         cluster.repository.storage_path,
@@ -107,10 +108,6 @@ def _bootstrap_S3(args, ansible_base):
     goofys_pb = os.path.join(
         ansible_base, "roles", "goofys", "tasks", "main.yml")
     common.run_ansible_pb(inventory_path, goofys_pb, args)
-
-    mount_pb = os.path.join(
-        ansible_base, "roles", "goofys", "tasks", "mount.yml")
-    common.run_ansible_pb(inventory_path, mount_pb, args)
 
 
 def per_machine_target_cores(cores, num_jobs):
