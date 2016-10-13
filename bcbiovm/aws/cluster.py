@@ -115,6 +115,7 @@ def start(args):
     ec_args = ["elasticluster", "start", args.cluster]
     ec_args = common.bcbio_args_to_ec(ec_args, args)
     status = common.wrap_elasticluster(ec_args)
+
     if status != 0:
         sys.exit(status)
     bootstrap_cluster(args)

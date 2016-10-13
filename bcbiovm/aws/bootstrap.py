@@ -40,12 +40,15 @@ AWS_INFO = {
     "m4.10xlarge": [40, 4000],
 }
 
+
 def bootstrap(args):
     """Bootstrap base machines to get bcbio-vm ready to run.
     """
     _bootstrap_baseline(args, common.ANSIBLE_BASE)
-    _bootstrap_nfs(args, common.ANSIBLE_BASE)
+    # _bootstrap_nfs(args, common.ANSIBLE_BASE)
     _bootstrap_bcbio(args, common.ANSIBLE_BASE)
+    _bootstrap_S3(args, common.ANSIBLE_BASE)
+
 
 def _bootstrap_baseline(args, ansible_base):
     """Install required tools -- docker and gof3r on system.
@@ -63,6 +66,7 @@ def _bootstrap_baseline(args, ansible_base):
         ansible_base, "roles", "gof3r", "tasks", "main.yml")
     common.run_ansible_pb(inventory_path, gof3r_pb, args)
 
+
 def _bootstrap_bcbio(args, ansible_base):
     """Install bcbio_vm and docker container with tools. Set core and memory usage.
     """
@@ -76,11 +80,15 @@ def _bootstrap_bcbio(args, ansible_base):
     def _extra_vars(args, cluster_config):
         # Calculate cores and memory
         compute_nodes = int(
-            tz.get_in(["nodes", "frontend", "compute_nodes"], cluster_config, 0))
+            tz.get_in(
+                ["nodes", "frontend", "compute_nodes"],
+                cluster_config, 0))
         if compute_nodes > 0:
             machine = tz.get_in(["nodes", "compute", "flavor"], cluster_config)
         else:
-            machine = tz.get_in(["nodes", "frontend", "flavor"], cluster_config)
+            machine = tz.get_in(
+                ["nodes", "frontend", "flavor"],
+                cluster_config)
         cores, mem = AWS_INFO[machine]
         cores = per_machine_target_cores(cores, compute_nodes)
         return {"target_cores": cores, "target_memory": mem,
@@ -89,11 +97,29 @@ def _bootstrap_bcbio(args, ansible_base):
     common.run_ansible_pb(
         inventory_path, playbook_path, args, _extra_vars)
 
-def per_machine_target_cores(cores, num_jobs):
-    """Select target cores on larger machines to leave room for batch script and controller.
 
-    On resource constrained environments, we want to pack all bcbio submissions onto a specific
-    number of machines. This gives up some cores to enable sharing cores with the controller
+def _bootstrap_S3(args, ansible_base):
+    cluster = common.ecluster_config(args.econfig).load_cluster(args.cluster)
+    inventory_path = os.path.join(
+        cluster.repository.storage_path,
+        'ansible-inventory.{}'.format(args.cluster))
+
+    goofys_pb = os.path.join(
+        ansible_base, "roles", "goofys", "tasks", "main.yml")
+    common.run_ansible_pb(inventory_path, goofys_pb, args)
+
+    mount_pb = os.path.join(
+        ansible_base, "roles", "goofys", "tasks", "mount.yml")
+    common.run_ansible_pb(inventory_path, mount_pb, args)
+
+
+def per_machine_target_cores(cores, num_jobs):
+    """Select target cores on larger machines to leave room
+    for batch script and controller.
+
+    On resource constrained environments, we want to pack all
+    bcbio submissions onto a specific number of machines.
+    This gives up some cores to enable sharing cores with the controller
     and batch script on larger machines.
     """
     if cores > 30:
@@ -101,6 +127,7 @@ def per_machine_target_cores(cores, num_jobs):
     elif cores > 15 and num_jobs < 10:
         cores = cores - 1
     return cores
+
 
 def _bootstrap_nfs(args, ansible_base):
     """Mount encrypted NFS volume on master node and expose across worker nodes.
@@ -115,12 +142,24 @@ def _bootstrap_nfs(args, ansible_base):
                 nfs_server = line.split()[0]
             elif line.startswith("compute"):
                 nfs_clients.append(line.split()[0])
-    playbook_path = os.path.join(ansible_base, "roles", "encrypted_nfs", "tasks", "main.yml")
+    playbook_path = os.path.join(
+        ansible_base,
+        "roles",
+        "encrypted_nfs",
+        "tasks",
+        "main.yml")
+
     def _extra_vars(args, cluster_config):
         return {"encrypted_mount": "/encrypted",
                 "nfs_server": nfs_server,
                 "nfs_clients": ",".join(nfs_clients),
-                "login_user": tz.get_in(["nodes", "frontend", "login"], cluster_config),
-                "encrypted_device": tz.get_in(["nodes", "frontend", "encrypted_volume_device"],
-                                              cluster_config, "/dev/xvdf")}
+                "login_user": tz.get_in(["nodes",
+                                         "frontend",
+                                         "login"],
+                                        cluster_config),
+                "encrypted_device": tz.get_in(["nodes",
+                                               "frontend",
+                                               "encrypted_volume_device"],
+                                              cluster_config,
+                                              "/dev/xvdf")}
     common.run_ansible_pb(inventory_path, playbook_path, args, _extra_vars)

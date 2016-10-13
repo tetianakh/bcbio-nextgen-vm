@@ -81,8 +81,11 @@ def _create_keypair(econfig_file):
     if not key:
         with open(public_key) as in_handle:
             ec2.import_key_pair(keyname, in_handle.read())
-    return {"user_key_name": keyname, "user_key_private": private_key,
-            "user_key_public": public_key}
+    return {
+        "user_key_name": keyname,
+        "user_key_private": private_key,
+        "user_key_public": public_key
+    }
 
 IAM_POLICY = """{
   "Version": "2012-10-17",

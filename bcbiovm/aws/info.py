@@ -75,7 +75,9 @@ def _sg_info(cluster_config):
 
 
 def _vpc_info(cluster_config):
-    conn = boto.vpc.VPCConnection()
+    conn = boto.vpc.connect_to_region(
+        cluster_config['cloud']['ec2_region'],
+    )
 
     vpcs = conn.get_all_vpcs()
     if not vpcs:

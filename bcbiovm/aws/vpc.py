@@ -46,9 +46,11 @@ def _setup_vpc(args):
     compute_subnet = '{}/24'.format(net)
 
     cluster_config = common.ecluster_config(args.econfig, args.cluster)
-    conn = boto.connect_vpc(
+    conn = boto.vpc.connect_to_region(
+        cluster_config['cloud']['ec2_region'],
         aws_access_key_id=cluster_config['cloud']['ec2_access_key'],
-        aws_secret_access_key=cluster_config['cloud']['ec2_secret_key'])
+        aws_secret_access_key=cluster_config['cloud']['ec2_secret_key'],
+    )
 
     existing_vpcs = conn.get_all_vpcs(filters={'tag:Name': args.cluster})
     if existing_vpcs:
