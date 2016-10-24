@@ -46,8 +46,9 @@ def bootstrap(args):
     """
     _bootstrap_baseline(args, common.ANSIBLE_BASE)
     # _bootstrap_nfs(args, common.ANSIBLE_BASE)
-    _bootstrap_S3(args)
     _bootstrap_bcbio(args, common.ANSIBLE_BASE)
+    _upgrade_bcbio_to_dev(args)
+    _bootstrap_S3(args)
 
 
 def _bootstrap_baseline(args, ansible_base):
@@ -107,6 +108,19 @@ def _bootstrap_S3(args):
 
     goofys_pb = os.path.join(
         ansible_base, "roles", "goofys", "tasks", "main.yml")
+    common.run_ansible_pb(inventory_path, goofys_pb, args)
+
+
+def _upgrade_bcbio_to_dev(args):
+    ansible_base = './ansible'
+    cluster = common.ecluster_config(args.econfig).load_cluster(args.cluster)
+    inventory_path = os.path.join(
+        cluster.repository.storage_path,
+        'ansible-inventory.{}'.format(args.cluster))
+
+    goofys_pb = os.path.join(
+        ansible_base, "roles", "bcbio_bootstrap", "tasks", "upgrade_to_dev.yml"
+    )
     common.run_ansible_pb(inventory_path, goofys_pb, args)
 
 

@@ -1,0 +1,18 @@
+- name: Upgrade bcbio to dev
+  hosts: all
+  sudo: false
+  vars:
+    anaconda_dir: "~{{ansible_user_id}}/install/bcbio-vm/data/anaconda"
+    src_dir: "~{{ansible_user_id}}/src/bcbio-nextgen"
+    repo: 
+  tasks:
+
+    - name: Use clone code from S3 fork
+      git: 
+        repo: https://github.com/tetianakh/bcbio-nextgen.git
+        dest: "{{ src_dir }}"
+        version: feature/work_dir_on_S3
+        clone: yes
+
+    - name: Update bcbio-nextgen inside the bcbio_vm  
+      shell: "cd {{ src_dir }} && {{anaconda_dir}}/bin/bcbio_vm.py devel setup_install"
