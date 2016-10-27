@@ -44,9 +44,9 @@ AWS_INFO = {
 def bootstrap(args):
     """Bootstrap base machines to get bcbio-vm ready to run.
     """
-    _bootstrap_baseline(args, common.ANSIBLE_BASE)
+    # _bootstrap_baseline(args, common.ANSIBLE_BASE)
 #    _bootstrap_nfs(args, common.ANSIBLE_BASE)
-    _bootstrap_bcbio(args, common.ANSIBLE_BASE)
+    # _bootstrap_bcbio(args, common.ANSIBLE_BASE)
     _upgrade_bcbio_to_dev(args, common.ANSIBLE_BASE)
     _bootstrap_S3(args, common.ANSIBLE_BASE)
 

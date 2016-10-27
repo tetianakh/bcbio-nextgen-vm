@@ -8,6 +8,11 @@
     S3_bucket: testbcbio
     S3_mount_point: /mnt/S3
   tasks:
+    - lineinfile: 
+        dest: /etc/fuse.conf
+        regexp: ^user_allow_other
+        line: user_allow_other
+      sudo: True
 
     - name: Create fuse group
       group: name=fuse state=present gid=12345
@@ -49,7 +54,7 @@
       sudo: True
 
     - name: Mount S3 bucket  
-      shell: echo 'goofys  -o allow_other --uid=`id -u ubuntu` --gid 12345 --dir-mode=0775 --file-mode=0664 --endpoint "{{ S3_endpoint }}" "{{ S3_bucket }}" "{{ S3_mount_point }}"'
+      shell: "goofys -o allow_other --uid=`id -u ubuntu` --gid 12345 --dir-mode=0775 --file-mode=0664 --endpoint {{ S3_endpoint }} {{ S3_bucket }} {{ S3_mount_point }}"
       sudo: True
 
     - name: Check if the bucket is mounted

@@ -48,7 +48,7 @@ class AWSRunConfligLoader(object):
 
     def _expandwars(self, config):
         for k, v in config.iteritems():
-            config[k] = os.expandwars(v)
+            config[k] = os.path.expandvars(v)
         return config
 
 
@@ -117,8 +117,8 @@ def _get_slurm_cmds(args):
         "--mem=2000",
         "-p %s" % args.queue,
         "-t %s" % timelimit,
-        "-o %s/slurm_%j.out" % config['output_dir'],
-        "-e %s/slurm_%j.err" % config['output_dir'],
+        "-o %s/slurm_%%j.out" % config['output_dir'],
+        "-e %s/slurm_%%j.err" % config['output_dir'],
         "-D %s" % config['work_dir'],
         "-vvvv",
     ]

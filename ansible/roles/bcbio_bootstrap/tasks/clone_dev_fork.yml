@@ -2,21 +2,30 @@
   sudo: false
   hosts: frontend*
   vars:
-    src_dir: "~{{ansible_user_id}}/src/bcbio-nextgen"
+    bcbio_src_dir: "/home/{{ansible_user_id}}/src/bcbio-nextgen"
+    bcbio_vm_src_dir: "/home/{{ansible_user_id}}/src/bcbio-nextgen-vm"
     bcbio_repo: "https://github.com/tetianakh/bcbio-nextgen.git"
     bcbio_vm_repo: "https://github.com/tetianakh/bcbio-nextgen-vm.git"
+    anaconda_dir: "/home/{{ansible_user_id}}/install/bcbio-vm/data/anaconda"
   tasks:
 
     - name: Clone bcbio code from S3 fork
       git:
         repo:  "{{ bcbio_repo }}"
-        dest: "{{ src_dir }}"
-        version: master feature/work_dir_on_S3
+        dest: "{{ bcbio_src_dir }}"
+        version: feature/work_dir_on_S3
         clone: yes
 
     - name: Clone bcbio-vm code from S3 fork
       git:
         repo:  "{{ bcbio_vm_repo }}"
-        dest: "{{ src_dir }}"
+        dest: "{{ bcbio_vm_src_dir }}"
         version: fix/adjust_aws_setup_for_s3 
         clone: yes
+
+    - name: Remove the installed version of bcbio_vm
+      shell: "{{anaconda_dir}}/bin/conda remove --y bcbio-nextgen-vm"
+      ignore_errors: True
+   
+    - name: Upgrade bcbio-nextgen-vm  
+      shell: "cd {{ bcbio_vm_src_dir }} && {{anaconda_dir}}/bin/pip install -e ."
