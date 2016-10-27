@@ -3,8 +3,16 @@
   hosts: all
   vars:
     anaconda_dir: "~{{ansible_user_id}}/install/bcbio-vm/data/anaconda"
-    src_dir: "~{{ansible_user_id}}/src/bcbio-nextgen"
+    bcbio_src_dir: "~{{ansible_user_id}}/src/bcbio-nextgen"
+    bcbio_vm_src_dir: "~{{ansible_user_id}}/src/bcbio-nextgen-vm"
   tasks:
 
-    - name: Update bcbio-nextgen inside the bcbio_vm  
-      shell: "cd {{ src_dir }} && {{anaconda_dir}}/bin/bcbio_vm.py devel setup_install"
+    - name: Remove the installed version of bcbio_vm
+      shell: "{{anaconda_dir}}/bin/conda remove --y bcbio-nextgen-vm"
+
+    - name: Upgrade bcbio-nextgen-vm  
+      shell: "cd {{ bcbio_vm_src_dir }} && {{anaconda_dir}}/bin/pip install -e ."
+
+    - name: Upgrade bcbio-nextgen inside the bcbio_vm  
+      shell: "cd {{ bcbio_src_dir }} && {{anaconda_dir}}/bin/bcbio_vm.py devel setup_install"
+
