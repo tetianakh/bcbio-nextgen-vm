@@ -44,7 +44,6 @@
 
     - name: Install bcbio_vm
       shell: "{{anaconda_dir}}/bin/conda install --y -c bioconda bcbio-nextgen-vm"
-    
 
     - name: bcbio_vm.py -- setgid docker
       file:
@@ -117,7 +116,6 @@
         - tmux
         - awscli
       sudo: True
-
 
     - name: Add bcbio_vm.py to PATH
       file:

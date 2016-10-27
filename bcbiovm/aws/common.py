@@ -14,7 +14,7 @@ import elasticluster.main
 
 DEFAULT_EC_CONFIG = os.path.expanduser(
     os.path.join("~", ".bcbio", "elasticluster", "config"))
-ANSIBLE_BASE = os.path.join(sys.prefix, "share", "bcbio-vm", "ansible")
+ANSIBLE_BASE = os.path.join('./', 'ansible')
 EC_ANSIBLE_LIBRARY = os.path.join(sys.prefix, "share/elasticluster/providers/ansible-playbooks/library")
 
 

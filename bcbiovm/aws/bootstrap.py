@@ -45,10 +45,10 @@ def bootstrap(args):
     """Bootstrap base machines to get bcbio-vm ready to run.
     """
     _bootstrap_baseline(args, common.ANSIBLE_BASE)
-    # _bootstrap_nfs(args, common.ANSIBLE_BASE)
+#    _bootstrap_nfs(args, common.ANSIBLE_BASE)
     _bootstrap_bcbio(args, common.ANSIBLE_BASE)
-    _upgrade_bcbio_to_dev(args)
-    _bootstrap_S3(args)
+    _upgrade_bcbio_to_dev(args, common.ANSIBLE_BASE)
+    _bootstrap_S3(args, common.ANSIBLE_BASE)
 
 
 def _bootstrap_baseline(args, ansible_base):
@@ -99,8 +99,7 @@ def _bootstrap_bcbio(args, ansible_base):
         inventory_path, playbook_path, args, _extra_vars)
 
 
-def _bootstrap_S3(args):
-    ansible_base = './ansible'
+def _bootstrap_S3(args, ansible_base):
     cluster = common.ecluster_config(args.econfig).load_cluster(args.cluster)
     inventory_path = os.path.join(
         cluster.repository.storage_path,
@@ -111,17 +110,20 @@ def _bootstrap_S3(args):
     common.run_ansible_pb(inventory_path, goofys_pb, args)
 
 
-def _upgrade_bcbio_to_dev(args):
-    ansible_base = './ansible'
+def _upgrade_bcbio_to_dev(args, ansible_base):
     cluster = common.ecluster_config(args.econfig).load_cluster(args.cluster)
     inventory_path = os.path.join(
         cluster.repository.storage_path,
         'ansible-inventory.{}'.format(args.cluster))
 
-    goofys_pb = os.path.join(
-        ansible_base, "roles", "bcbio_bootstrap", "tasks", "upgrade_to_dev.yml"
+    base = os.path.join(
+        ansible_base, "roles", "bcbio_bootstrap", "tasks"
     )
-    common.run_ansible_pb(inventory_path, goofys_pb, args)
+
+    clone_pb = os.path.join(base, "clone_dev_fork.yml")
+    upg_pb = os.path.join(base, "upgrade_to_dev.yml")
+    common.run_ansible_pb(inventory_path, clone_pb, args)
+    common.run_ansible_pb(inventory_path, upg_pb, args)
 
 
 def per_machine_target_cores(cores, num_jobs):

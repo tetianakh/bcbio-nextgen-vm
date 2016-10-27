@@ -8,24 +8,50 @@
     S3_bucket: testbcbio
     S3_mount_point: /mnt/S3
   tasks:
+
+    - name: Create fuse group
+      group: name=fuse state=present gid=12345
+      sudo: True
+
+    - name: Adding user slurm to group fuse  
+      user: 
+        name: slurm
+        groups: fuse
+        append: yes
+      sudo: True
+
+    - name: Adding user ubuntu to group fuse  
+      user: 
+        name: ubuntu
+        groups: fuse
+        append: yes
+      sudo: True
+
     - name: Download goofys 
       get_url:
         url: "{{ goofys_url }}"
         dest: "{{ goofys_file }}"
         force: yes
-        mode: 0755
+        mode: '2777'
       sudo: True
 
-    - stat: path="{{ S3_mount_point }}"
+    - stat: 
+        path: "{{ S3_mount_point }}"
       register: dir
 
     - name: Create mount directory
-      file: path="{{ S3_mount_point }}" state=directory owner="ubuntu"
+      file: 
+        path: "{{ S3_mount_point }}" 
+        state: directory 
+        owner: "ubuntu" 
+        mode: "0777"
       when: dir.stat.exists == False
       sudo: True
 
     - name: Mount S3 bucket  
-      shell: goofys --endpoint "{{ S3_endpoint }}" "{{ S3_bucket }}" "{{ S3_mount_point }}"
+      shell: echo 'goofys  -o allow_other --uid=`id -u ubuntu` --gid 12345 --dir-mode=0775 --file-mode=0664 --endpoint "{{ S3_endpoint }}" "{{ S3_bucket }}" "{{ S3_mount_point }}"'
+      sudo: True
 
     - name: Check if the bucket is mounted
       command: "grep -s {{ S3_bucket }} /proc/mounts"
+      sudo: True
