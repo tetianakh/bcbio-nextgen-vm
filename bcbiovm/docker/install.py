@@ -10,7 +10,7 @@ import yaml
 
 from bcbiovm.docker import manage, mounts
 
-DEFAULT_IMAGE = "bcbio/bcbio"
+DEFAULT_IMAGE = "bcbio/bcbio:latest"
 
 def full(args, dockerconf):
     """Full installaction of docker image and data.
@@ -126,14 +126,13 @@ def add_install_defaults(args):
     args = _add_docker_defaults(args, default_args)
     return args
 
+
 def _check_docker_image(args):
     """Ensure docker image exists.
     """
-    for image in subprocess.check_output(["docker", "images"]).split("\n"):
-        parts = image.split()
-        if len(parts) > 1 and parts[0] == args.image:
-            return
-    raise ValueError("Could not find docker image %s in local repository" % args.image)
+    if not manage.image_exists(args.image):
+        raise ValueError("Could not find docker image %s in local repository" % args.image)
+
 
 def docker_image_arg(args):
     if not hasattr(args, "image") or not args.image:

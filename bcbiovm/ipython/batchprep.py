@@ -16,7 +16,7 @@ class AWSRunConfligLoader(object):
     DEFAULTS = {
         'output_dir': '$HOME/testrun',
         'work_dir': '/mnt/S3/workdir',
-        'data_dir': '$HOME/src/bcbio-nextgen/tests/data/automated',
+        'data_dir': '$HOME/src/bcbio-nextgen/tests/data',
         'system_config':
             '$HOME/install/bcbio-vm/data/galaxy/bcbio_system.yaml',
     }

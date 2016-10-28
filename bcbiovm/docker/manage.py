@@ -8,8 +8,18 @@ import platform
 import pwd
 import subprocess
 
+from docker.client import Client
 from bcbio.log import logger
 from bcbio.provenance import do
+
+_client = None
+
+def get_client():
+    global _client
+    if _client is None:
+        _client = Client()
+    return _client
+
 
 def run_bcbio_cmd(image, mounts, bcbio_nextgen_args, ports=None):
     """Run command in docker container with the supplied arguments to bcbio-nextgen.py.
@@ -61,3 +71,12 @@ def _get_pass_envs():
         if proxyenv in os.environ:
             out += ["-e", "%s=%s" % (proxyenv, os.environ[proxyenv])]
     return out
+
+
+def image_exists(image_name):
+    client = get_client()
+    for image in client.images():
+        repo_tags = image.get('RepoTags')
+        if repo_tags and image_name in repo_tags:
+            return True
+    return False

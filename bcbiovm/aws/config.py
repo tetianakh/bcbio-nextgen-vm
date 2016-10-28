@@ -48,8 +48,6 @@ def load_s3(sample_config):
             default_flow_style=False,
             allow_unicode=False)
     return out_file
-    import pdb
-    pdb.set_trace()  # XXX BREAKPOINT
 
 
 def _add_jar_resources(config, sample_config):
